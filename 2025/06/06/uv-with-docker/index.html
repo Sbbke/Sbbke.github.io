@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>uv-with-docker | Andrew</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="Continue the theme of if a package require GPU usage to build and install, how can we approach it with docker. Besides from directly running in docker build stage, another way is to build the package">
+<meta property="og:type" content="article">
+<meta property="og:title" content="uv-with-docker">
+<meta property="og:url" content="http://sbbke.github.io/2025/06/06/uv-with-docker/index.html">
+<meta property="og:site_name" content="Andrew">
+<meta property="og:description" content="Continue the theme of if a package require GPU usage to build and install, how can we approach it with docker. Besides from directly running in docker build stage, another way is to build the package">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2025-06-06T08:04:01.000Z">
+<meta property="article:modified_time" content="2025-06-06T08:33:33.668Z">
+<meta property="article:author" content="Andrew Weian Hou">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Andrew" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.2.0/css/fork-awesome.min.css">
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Andrew</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://Sbbke.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-uv-with-docker" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2025/06/06/uv-with-docker/" class="article-date">
+  <time class="dt-published" datetime="2025-06-06T08:04:01.000Z" itemprop="datePublished">2025-06-06</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      uv-with-docker
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>Continue the theme of if a package require GPU usage to build and install, how can we approach it with docker. Besides from directly running in docker build stage, another way is to build the package on the host, and pass the pre-build package into the docker.</p>
+<h3 id="using-uv-for-python-dependency-management-and-building"><a href="#using-uv-for-python-dependency-management-and-building" class="headerlink" title="using uv for python dependency management and building"></a>using uv for python dependency management and building</h3><ul>
+<li>The case is that we need to build the package beforehand. The reason why we don’t build the package directly in the docker file is because that it require GPU usage for compilation, but in docker build stage, the use of GPU is blocked for security reason.</li>
+</ul>
+<h2 id="adding-local-or-pre-biuld-package-into-project-toml"><a href="#adding-local-or-pre-biuld-package-into-project-toml" class="headerlink" title="adding local or pre-biuld package into project.toml"></a>adding local or pre-biuld package into project.toml</h2><ul>
+<li>Adding an local package (in this case I tried to build and install sageattention) into uv project</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">uv add &lt;path-to-project&gt;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>The project.toml will looked like this</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">[project]</span><br><span class="line">name = <span class="string">&quot;test&quot;</span></span><br><span class="line">version = <span class="string">&quot;0.1.0&quot;</span></span><br><span class="line">description = <span class="string">&quot;Add your description here&quot;</span></span><br><span class="line">readme = <span class="string">&quot;README.md&quot;</span></span><br><span class="line">requires-python = <span class="string">&quot;&gt;=3.12&quot;</span></span><br><span class="line">dependencies = [</span><br><span class="line">    <span class="string">&quot;gitpython&gt;=3.1.44&quot;</span>,</span><br><span class="line">    <span class="string">&quot;triton&gt;=3.3.1&quot;</span>,</span><br><span class="line">]</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">[tool.uv.sources]</span><br><span class="line">sageattention = &#123; path = <span class="string">&quot;custom_nodes/SageAttention&quot;</span> &#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>then run</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">uv lock</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>But there is a dependency error occurred</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">ModuleNotFoundError: No module named <span class="string">&#x27;torch&#x27;</span></span><br><span class="line"></span><br><span class="line">      hint: This error likely indicates that `sageattention @</span><br><span class="line">      file://&lt;path&gt;/SageAttention`</span><br><span class="line">      depends on `torch`, but doesn<span class="string">&#x27;t declare it</span></span><br><span class="line"><span class="string">      as a build dependency. If `sageattention @</span></span><br><span class="line"><span class="string">      file://&lt;path&gt;/SageAttention`</span></span><br><span class="line"><span class="string">      is a first-party package, consider adding `torch` to its</span></span><br><span class="line"><span class="string">      `build-system.requires`. Otherwise, `uv pip install torch` into the</span></span><br><span class="line"><span class="string">      environment and re-run with `--no-build-isolation`.</span></span><br><span class="line"><span class="string">  help: If you want to add the package regardless of the failed resolution,</span></span><br><span class="line"><span class="string">        provide the `--frozen` flag to skip locking and syncing.</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>Even though it can be simply fixed by adding the package with –no-build-isolation flag, but when we build the project into wheel file (whl), and pass the file into docker to build, the same error will still occurred (sometimes it didn’t, still trying to figure it out). Honestly, using uv for container dependency build management is way more complicated than I thought.</li>
+</ul>
+<h2 id="building-the-project-and-pass-it-into-docker"><a href="#building-the-project-and-pass-it-into-docker" class="headerlink" title="building the project and pass it into docker"></a>building the project and pass it into docker</h2><ul>
+<li>first I build the project into wheel file using <a target="_blank" rel="noopener" href="https://docs.astral.sh/uv/guides/package/">uv build</a> command, this will generate whl file under &#x2F;dist</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">uv build</span><br></pre></td></tr></table></figure>
+<ul>
+<li>check the dependency integrity</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">uv lock</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>Than copy the whl file into docker to install the dependencies</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">RUN uv venv -p 3.12</span><br><span class="line">ENV PATH=<span class="string">&quot;/app/.venv/bin:<span class="variable">$PATH</span>&quot;</span>\</span><br><span class="line">    UV_PYTHON=/app/.venv/bin/python</span><br><span class="line">    </span><br><span class="line">COPY dist/*.whl ./dist/</span><br><span class="line">RUN uv pip install ./dist/&lt;yout-whl-name&gt;.whl </span><br></pre></td></tr></table></figure>
+<ul>
+<li>In pyproject.toml, I have dependency on a git project</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cstr = &#123; git = <span class="string">&quot;https://github.com/WASasquatch/cstr.git&quot;</span> &#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>While install process in docker, it scream</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">× No solution found when resolving dependencies:                        </span><br><span class="line">            ╰─▶ Because cstr was not found <span class="keyword">in</span> the package registry</span><br></pre></td></tr></table></figure>
+<ul>
+<li>I think is something wrong in [uv build] resulting the generated whl file didn’t contain the cstr package?, however cstr is listed in the egg-info&#x2F;requires.txt. Anyway, I manually install cstr package in dockerfile.</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">RUN uv pip install <span class="string">&quot;git+https://github.com/WASasquatch/cstr.git&quot;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>One thing worth to notice is that while uv installing dependency from whl file, interesting enough is that in the console it is downloading the packages, instead directly using the installed package from the host, the process makes me wonder what is the point of installed dependency on the host than build a project.toml. I think the advantage of it is for other user tried to replicate the project, all they need is a single whl file copy into their docker file then thay are good to go (only for python dependency of course).</p>
+</li>
+<li><p>the current approach is to build the package on the host, and add its local source into pyproject.toml, with this approach, the host is required to pull the package, build and install on the host, the specify the path to the local source package in to pyprojecy, when collaborate with docker, it requirs the local source being copy into the docker as well. Since this package (sageattention) is from git repo, I think uv build backend should be able to specify the build process in pyproject therefore doesn’y require the host to build it first.</p>
+</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://sbbke.github.io/2025/06/06/uv-with-docker/" data-id="cmbkjtdmo0001s5d0a5t4ecmy" data-title="uv-with-docker" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2025/05/27/docker_build_with_gpu/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Enable GPU during docker build</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/06/">June 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/05/">May 2025</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2025/06/06/uv-with-docker/">uv-with-docker</a>
+          </li>
+        
+          <li>
+            <a href="/2025/05/27/docker_build_with_gpu/">Enable GPU during docker build</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2025 Andrew Weian Hou<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>
