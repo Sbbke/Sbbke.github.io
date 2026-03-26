@@ -1,0 +1,1 @@
+import{w as s,u as a,j as e}from"./chunk-EPOLDU6W-B0KeTLaS.js";const r=s(function(){const{post:t}=a();return e.jsxs("article",{children:[e.jsx("h1",{children:t.title}),t.date&&e.jsxs("p",{children:["Published: ",new Date(t.date).toLocaleDateString()]}),e.jsx("div",{dangerouslySetInnerHTML:{__html:t.html}})]})});export{r as default};
