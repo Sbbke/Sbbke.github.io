@@ -1,1 +1,0 @@
-import{w as r,j as e}from"./chunk-EPOLDU6W-DPRMDpDg.js";const t=r(function(){return e.jsxs("div",{className:"page-container",children:[e.jsx("h2",{children:"Oops!"}),e.jsx("p",{children:"An unexpected error occurred."})]})});export{t as default};
